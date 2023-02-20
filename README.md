@@ -1,11 +1,27 @@
 # Multimodal image and audio music transcription
 
-Carlos de la Fuente, Jose J Valero-Mas, Francisco J Castellanos, Jorge Calvo-Zaragoza, **María Alfaro-Contreras**, and Jose M Iñesta<br />
-[*Multimodal Audio and Image Music Transcription*](https://archives.ismir.net/ismir2021/latebreaking/000022.pdf)<br />
-Late-breaking Demo at the 22nd International Society for Music Information Retrieval (ISMIR) Conference, Online, November 7-12, 2021
+Code for the paper:<br />
+  > Carlos de la Fuente, Jose J Valero-Mas, Francisco J Castellanos, Jorge Calvo-Zaragoza, **María Alfaro-Contreras**, and Jose M Iñesta<br />
+  [*Multimodal Audio and Image Music Transcription*](https://archives.ismir.net/ismir2021/latebreaking/000022.pdf)<br />
+  Late-breaking Demo at the 22nd International Society for Music Information Retrieval (ISMIR) Conference, Online, November 7-12, 2021
 
 Dataset used: **Camera-PrIMuS**. Available [here](https://grfia.dlsi.ua.es/primus/).
 The partitions used can be found in the 5-crossval.tgz file.
+
+----
+
+**Citation**
+
+```bibtex
+@inproceedings{delafuente2021multimodal,
+  author       = {de la Fuente, Carlos and Valero-Mas, Jose J. and Castellanos, Francisco J. and Calvo-Zaragoza, Jorge and Alfaro-Contreras, Mar{\'i}a and I{\~n}esta, Jose M. },
+  title        = {{Multimodal audio and image music transcription}},
+  booktitle    = {{Late-breaking Demo at the 22nd International Society for Music Information Retrieval (ISMIR) Conference}},
+  year         = 2021,
+  month        = nov,
+  address      = {Online},
+}
+```
 
 ----
 
