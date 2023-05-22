@@ -1,5 +1,7 @@
 # Multimodal image and audio music transcription
 
+![Tensorflow](https://img.shields.io/badge/Tensorflow-%FFFFFF.svg?style=flat&logo=Tensorflow&logoColor=orange&color=white) [![License](https://img.shields.io/static/v1?label=License&message=MIT&color=blue)]() 
+
 Code for the paper:<br />
   > Carlos de la Fuente, Jose J Valero-Mas, Francisco J Castellanos, Jorge Calvo-Zaragoza, **María Alfaro-Contreras**, and Jose M Iñesta<br />
   [*Multimodal Audio and Image Music Transcription*](https://archives.ismir.net/ismir2021/latebreaking/000022.pdf)<br />
