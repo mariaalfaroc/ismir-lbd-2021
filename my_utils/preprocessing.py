@@ -10,7 +10,7 @@ from networks.models import INPUT_HEIGHT, POOLING_FACTORS
 IMAGE_FLAGS = {"omr": 1, "amt": -1}  # 1 -> cv2.IMREAD_COLOR; -1 -> cv2.IMREAD_UNCHANGED
 
 
-################################################################# Input data preprocessing:
+################################################################# INPUT DATA PREPROCESSING:
 
 
 # Preprocess image:
@@ -43,7 +43,7 @@ def preprocess_label(
     return label
 
 
-################################################################# CTC preprocessing:
+################################################################# CTC PREPROCESSING:
 
 
 # CTC-loss preprocess function -> (xi, yi)

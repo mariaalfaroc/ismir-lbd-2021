@@ -4,7 +4,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-import config
 from networks.metrics import compute_metrics
 from my_utils.preprocessing import preprocess_image, preprocess_label
 
@@ -31,15 +30,16 @@ def evaluate_model(
     images_files: List[str],
     labels_files: List[str],
     i2w: Dict[int, str],
+    batch_size: int,
 ) -> Tuple[float, float]:
     y_pred_acc = []
     # Iterate over images in batches
-    for start in range(0, len(images_files), config.batch_size):
+    for start in range(0, len(images_files), batch_size):
         images, images_len = list(
             zip(
                 *[
                     preprocess_image(task=task, image_path=i)
-                    for i in images_files[start : start + config.batch_size]
+                    for i in images_files[start : start + batch_size]
                 ]
             )
         )
