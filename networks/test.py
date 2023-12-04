@@ -5,7 +5,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from networks.metrics import compute_metrics
-from my_utils.preprocessing import preprocess_image, preprocess_label
+from my_utils.preprocessing import preprocess_input, preprocess_label
 
 
 # CTC-greedy decoder:
@@ -23,43 +23,30 @@ def ctc_greedy_decoder(
     return y_pred
 
 
-# Utility function for evaluting a model over a dataset and computing the corresponding metrics
+# Utility function for evaluting a model over a dataset
+# and computing the corresponding metrics
 def evaluate_model(
     task: str,
     model: keras.Model,
     images_files: List[str],
     labels_files: List[str],
     i2w: Dict[int, str],
-    batch_size: int,
 ) -> Tuple[float, float]:
+    y_true_acc = []
     y_pred_acc = []
-    # Iterate over images in batches
-    for start in range(0, len(images_files), batch_size):
-        images, images_len = list(
-            zip(
-                *[
-                    preprocess_image(task=task, image_path=i)
-                    for i in images_files[start : start + batch_size]
-                ]
-            )
-        )
-        # Zero-pad images to maximum batch image width
-        max_width = max(images, key=np.shape).shape[1]
-        images = np.array(
-            [
-                np.pad(i, pad_width=((0, 0), (0, max_width - i.shape[1]), (0, 0)))
-                for i in images
-            ],
-            dtype="float32",
-        )
+    # Iterate over images
+    for img, label in zip(images_files, labels_files):
+        images, images_len = preprocess_input(task=task, image_path=img)
+        images = np.expand_dims(images, axis=0)
         # Obtain predictions
         y_pred = model(images, training=False)
         # CTC greedy decoder (merge repeated, remove blanks, and i2w conversion)
-        y_pred_acc.extend(ctc_greedy_decoder(y_pred, images_len, i2w))
-    # Obtain true labels
-    y_true_acc = [
-        preprocess_label(label_path=i, training=False, w2i=None) for i in labels_files
-    ]
+        y_pred = ctc_greedy_decoder(y_pred, [images_len], i2w)
+        # Obtain true labels
+        y_true = preprocess_label(label, training=False, w2i=None)
+        # Accumulate
+        y_true_acc.append(y_true)
+        y_pred_acc.append(y_pred[0])
     # Compute metrics
     symer, seqer = compute_metrics(y_true_acc, y_pred_acc)
     print(

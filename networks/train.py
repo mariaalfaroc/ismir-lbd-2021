@@ -3,7 +3,7 @@ from typing import List, Dict, Tuple
 import pandas as pd
 from tensorflow import keras
 
-from networks.eval import evaluate_model
+from networks.test import evaluate_model
 from my_utils.preprocessing import train_data_generator
 
 
@@ -53,7 +53,6 @@ def train_and_test_model(
             images_files=val_images,
             labels_files=val_labels,
             i2w=i2w,
-            batch_size=batch_size,
         )
         val_symer_acc.append(val_symer)
         val_seqer_acc.append(val_seqer)
@@ -73,7 +72,6 @@ def train_and_test_model(
         images_files=test_images,
         labels_files=test_labels,
         i2w=i2w,
-        batch_size=batch_size,
     )
 
     # Save fold logs

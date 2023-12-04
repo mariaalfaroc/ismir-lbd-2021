@@ -1,16 +1,19 @@
 from typing import List, Dict, Tuple, Union
 
 import cv2
+import librosa
 import numpy as np
 from sklearn.utils import shuffle
 
 from networks.models import INPUT_HEIGHT, POOLING_FACTORS
 
 
-IMAGE_FLAGS = {"omr": 1, "amt": -1}  # 1 -> cv2.IMREAD_COLOR; -1 -> cv2.IMREAD_UNCHANGED
-
-
 ################################################################# INPUT DATA PREPROCESSING:
+
+
+def resize_image(image: np.ndarray, new_height: int) -> np.ndarray:
+    new_width = int(new_height * image.shape[1] / image.shape[0])
+    return cv2.resize(image, (new_width, new_height), interpolation=cv2.INTER_AREA)
 
 
 # Preprocess image:
@@ -18,15 +21,45 @@ IMAGE_FLAGS = {"omr": 1, "amt": -1}  # 1 -> cv2.IMREAD_COLOR; -1 -> cv2.IMREAD_U
 # 2) Convert to grayscale
 # 3) Normalize
 # 4) Resize preserving aspect ratio
-def preprocess_image(task: str, image_path: str) -> Tuple[np.ndarray, int]:
-    img = cv2.imread(image_path, IMAGE_FLAGS[task])
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+def preprocess_image(image_path: str) -> Tuple[np.ndarray, int]:
+    img = cv2.imread(image_path, 0)  # Read as grayscale
     img = (255.0 - img) / 255.0
-    new_height = INPUT_HEIGHT[task]
-    new_width = int(new_height * img.shape[1] / img.shape[0])
-    img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_AREA)
-    img = img.reshape(new_height, new_width, 1)
-    return img, img.shape[1] // POOLING_FACTORS[task]["width_reduction"]
+    img = resize_image(img, INPUT_HEIGHT["omr"])
+    img = np.expand_dims(img, -1)
+    img = img.astype("float32")
+    return img, img.shape[1] // POOLING_FACTORS["omr"]["width_reduction"]
+
+
+# Preprocess audio:
+# 1) Read from path
+# 2) Obtain CQT spectrogram
+# 3) Normalize
+# 4) Resize preserving aspect ratio
+def preprocess_audio(audio_path: str) -> Tuple[np.ndarray, int]:
+    audio, sr = librosa.load(audio_path, sr=22050)
+    spec = librosa.cqt(
+        audio,
+        sr=sr,
+        hop_length=512,
+        n_bins=120,
+        bins_per_octave=24,
+    )
+    spec = librosa.amplitude_to_db(abs(spec), ref=np.max)
+    spec = np.flip(spec, 0)
+    spec = (80.0 + spec) / 80.0
+    spec = resize_image(spec, INPUT_HEIGHT["amt"])
+    spec = np.expand_dims(spec, -1)
+    spec = spec.astype("float32")
+    return spec, spec.shape[1] // POOLING_FACTORS["amt"]["width_reduction"]
+
+
+def preprocess_input(task: str, input_path: str):
+    if task == "omr":
+        return preprocess_image(input_path)
+    elif task == "amt":
+        return preprocess_audio(input_path)
+    else:
+        raise ValueError("Invalid task")
 
 
 # Preprocess label:
@@ -102,7 +135,7 @@ def train_data_generator(
     while True:
         end = min(start + batch_size, size)
         images = [
-            preprocess_image(task=task, image_path=i) for i in images_files[start:end]
+            preprocess_input(task=task, input_path=i) for i in images_files[start:end]
         ]
         labels = [
             preprocess_label(label_path=i, training=True, w2i=w2i)
