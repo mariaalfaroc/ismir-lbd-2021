@@ -1,5 +1,6 @@
 import os
 import gc
+from typing import List
 
 import pandas as pd
 from tensorflow import keras
@@ -10,6 +11,7 @@ from networks.train import train_and_test_model
 from networks.test import evaluate_model
 from scenarios.folds_creation import get_folds_filenames, get_datafold_filenames
 from scenarios.config import MODEL_FROM
+from late_fusion.predict import evaluate_multimodal_transcription
 
 
 ######################################################################## STAND-ALONE EVALUATION:
@@ -164,3 +166,105 @@ def k_fold_experiment_scenario_c(*, task: str):
 
 
 ######################################################################## MULTIMODAL EVALUATION:
+
+
+# Utility function for performing a k-fold cross-validation multimodal experiment on a single dataset
+def k_fold_multimodal_experiment(
+    *,
+    scenario_name: str,
+    match: List[int] = [2],
+    mismatch: List[int] = [-1],
+    gap_penalty: List[int] = [-1],
+):
+    keras.backend.clear_session()
+    gc.collect()
+
+    # ---------- PRINT EXPERIMENT DETAILS
+
+    print(f"5-fold multimodal cross-validation experiment for scenario {scenario_name}")
+    print(f"\tMatch values: {match}")
+    print(f"\tMismatch values: {mismatch}")
+    print(f"\tGap penalty values: {gap_penalty}")
+
+    # ---------- DATA COLLECTION
+
+    folds = get_folds_filenames(scenario_name)
+
+    # ---------- K-FOLD EVALUATION
+
+    for id, test_fold in enumerate(folds["test"]):
+        # With 'clear_session()' called at the beginning,
+        # Keras starts with a blank state at each iteration
+        # and memory consumption is constant over time.
+        keras.backend.clear_session()
+        gc.collect()
+
+        print(f"Fold {id}")
+
+        # Get the current fold data
+        omr_test_images, test_labels = get_datafold_filenames(
+            task="omr", fold_filename=test_fold
+        )
+        amt_test_images, _ = get_datafold_filenames(task="amt", fold_filename=test_fold)
+        assert len(omr_test_images) == len(
+            amt_test_images
+        ), "Different number of files in OMR and AMT test sets!"
+        print(f"Test size: {len(omr_test_images)}")
+
+        # Check and retrieve vocabulary
+        i2w = check_and_retrive_vocabulary(fold_id=id)[1]
+
+        # Load the models
+        omr_pred_model_filepath = os.path.join(
+            "results", f"scenario{MODEL_FROM['omr'][{scenario_name}]}"
+        )
+        omr_pred_model_filepath = os.path.join(
+            omr_pred_model_filepath, f"fold{id}", "best_omr_model.keras"
+        )
+        omr_prediction_model = keras.models.load_model(omr_pred_model_filepath)
+
+        amt_pred_model_filepath = os.path.join(
+            "results", f"scenario{MODEL_FROM['amt'][{scenario_name}]}"
+        )
+        amt_pred_model_filepath = os.path.join(
+            amt_pred_model_filepath, f"fold{id}", "best_amt_model.keras"
+        )
+        amt_prediction_model = keras.models.load_model(amt_pred_model_filepath)
+
+        # Set filepaths outputs
+        output_dir = f"results/scenario{scenario_name}/fold{id}"
+        os.makedirs(output_dir, exist_ok=True)
+        log_path = os.path.join(output_dir, "multimodal_logs.csv")
+
+        symer_acc = []
+        seqer_acc = []
+        # Iterate over the different match, mismatch and gap_penalty values
+        for m, mism, gp in zip(match, mismatch, gap_penalty):
+            # Multimodal transcription evaluation
+            symer, seqer = evaluate_multimodal_transcription(
+                omr_model=omr_prediction_model,
+                amt_model=amt_prediction_model,
+                omr_image_files=omr_test_images,
+                amt_image_files=amt_test_images,
+                labels_files=test_labels,
+                i2w=i2w,
+                match=m,
+                mismatch=mism,
+                gap_penalty=gp,
+            )
+            symer_acc.append(symer)
+            seqer_acc.append(seqer)
+        # Save fold logs
+        logs = {
+            "match": match,
+            "mismatch": mismatch,
+            "gap_penalty": gap_penalty,
+            "symer": symer_acc,
+            "seqer": seqer_acc,
+        }
+        logs = pd.DataFrame.from_dict(logs)
+        logs.to_csv(log_path, index=False)
+
+        # Clear memory
+        del omr_test_images, amt_test_images, test_labels
+        del omr_prediction_model, amt_prediction_model

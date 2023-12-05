@@ -1,73 +1,65 @@
-# -*- coding: utf-8 -*-
-
 import os
+import random
 
+import numpy as np
 import tensorflow as tf
 
-import config
-from experimentation import k_fold_experiment, k_fold_experiment_scenario_c
-
-from smith_waterman.prediction_level_fusion import k_fold_multimodal_experiment as sw_k_fold_multimodal_experiment
-from scenarios_a_b_c.folds_creation import create_a_and_b_folds, create_c_folds
+from experimentation import (
+    k_fold_experiment,
+    k_fold_experiment_scenario_c,
+    k_fold_multimodal_experiment,
+)
+from scenarios.folds_creation import create_a_and_b_folds, create_c_folds
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 tf.config.list_physical_devices("GPU")
 
-if __name__ == "__main__":
-    epochs = 150
-    scenarios = ["A", "B", "C", "D"]
+# Seed
+random.seed(42)
+np.random.seed(42)
+tf.random.set_seed(42)
 
-    # STAND-ALONE EVALUATION
-    # Create folds for Scenarios A and B
+if __name__ == "__main__":
+    ##################################### STAND-ALONE EVALUATION:
+
+    EPOCHS = 150
+    BATCH_SIZE = 16
+    SYMER_THRESHOLD = 30
+
+    # 1) Evaluate first on Scenario D (original partitions)
+    for task in ["omr", "amt"]:
+        k_fold_experiment(
+            task=task, scenario_name="D", epochs=EPOCHS, batch_size=BATCH_SIZE
+        )
+    # 2) Create folds for the rest of the scenarios
     create_a_and_b_folds(p_size=2.5, scenario="A")
     create_a_and_b_folds(p_size=4.0, scenario="B")
-    # Evaluate on Scenario D to be able to create Scenario C folds
-    config.set_scenario(value="D")
-    # OMR
-    config.set_task(value="omr")
-    config.set_data_globals()
-    config.set_arch_globals(batch=16)
-    print(f"Task == {config.task}")
-    print(f"Scenario == {config.scenario}")
-    k_fold_experiment(epochs)
-    # AMT
-    config.set_task(value="amt")
-    config.set_data_globals()
-    config.set_arch_globals(batch=4)
-    print(f"Task == {config.task}")
-    print(f"Scenario == {config.scenario}")
-    k_fold_experiment(epochs)
-    # Create folds for Scenario C
-    create_c_folds()
-    # Evaluate on the remaining scenarios
-    # NOTE: See notes on k_fold_experiment() and k_fold_experiment_scenario_c() before proceeding!
-    for s in scenarios[:-1]:
-        config.set_scenario(value=s)
-        # OMR
-        config.set_task(value="omr")
-        config.set_data_globals()
-        config.set_arch_globals(batch=16)
-        print(f"Task == {config.task}")
-        print(f"Scenario == {config.scenario}")
-        if s == "C":
-            k_fold_experiment_scenario_c()
-            # Scenarios A, B, and D are the same for AMT
-            config.set_task(value="amt")
-            config.set_data_globals()
-            config.set_arch_globals(batch=4)
-            print(f"Task == {config.task}")
-            print(f"Scenario == {config.scenario}")
-            k_fold_experiment_scenario_c()
-            continue
-        k_fold_experiment(epochs)
+    create_c_folds(symer_threshold=SYMER_THRESHOLD)
+    # 3) Evaluate on the rest of the scenarios
+    for scenario in ["A", "B", "C"]:
+        for task in ["omr", "amt"]:
+            if task == "amt" and scenario in ["A", "B"]:
+                continue
+            if scenario == "C":
+                k_fold_experiment_scenario_c(task=task)
+                continue
+            k_fold_experiment(
+                task=task, scenario_name=scenario, epochs=EPOCHS, batch_size=BATCH_SIZE
+            )
 
-    # MULTIMODAL EVALUATION
-    match = [2, 10, 20, 5]
-    mismatch = [-1, 5, 10, 2,]
-    gap_penalty = [-1, -2, -4, -1]
-    for s in scenarios:
-        config.set_scenario(value=s)
-        print(f"Scenario{config.scenario}")
-        # PREDICTION LEVEL FUSION (SMITH - WATERMAN)
-        sw_k_fold_multimodal_experiment(match=match, mismatch=mismatch, gap_penalty=gap_penalty)
+    ##################################### MULTIMODAL EVALUATION:
+
+    MATCH = [2, 10, 20, 5]
+    MISMATCH = [
+        -1,
+        5,
+        10,
+        2,
+    ]
+    GAP_PENALTY = [-1, -2, -4, -1]
+
+    for s in ["A", "B", "C", "D"]:
+        k_fold_multimodal_experiment(
+            scenario_name=s, match=MATCH, mismatch=MISMATCH, gap_penalty=GAP_PENALTY
+        )
