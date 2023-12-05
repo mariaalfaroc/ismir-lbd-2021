@@ -4,7 +4,7 @@ from typing import List, Dict, Tuple
 
 from scenarios.folds_creation import get_folds_filenames, get_datafold_filenames
 
-VOCABS_DIR = "./scenarios/vocabs/"
+VOCABS_DIR = "scenarios/vocabs/"
 os.makedirs(VOCABS_DIR, exist_ok=True)
 
 
