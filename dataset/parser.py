@@ -50,8 +50,8 @@ def mei_to_midi(mei_file_path, midi_file_path):
 
 
 def create_multimodal_dataset():
-    # Move problematic sample
-    shutil.move(
+    # Copy problematic sample
+    shutil.copy(
         "110002867-1_1_1.wav",
         os.path.join("Corpus", "110002867-1_1_1", "110002867-1_1_1.wav"),
     )
