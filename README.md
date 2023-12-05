@@ -29,7 +29,7 @@ We propose a multimodal framework to align the greedy predictions provided by Op
 [^1]: It is important to clarify that the model we are referring to is actually an Audio-to-Score (A2S) model. At the time of conducting this research, we used the term AMT because the distinction between AMT and A2S did not exist in the literature. However, nowadays, there is a clear distinction between the two. AMT typically focuses on note-level transcription, encoding the acoustic piece in terms of onset, offset, pitch values, and the musical instrument of the estimated notes. In contrast, A2S aims to achieve a score-level codification.
 
 <p align="center">
-  <img src="scheme.png" alt="content" style="border: 1px solid black; width: 500px;">
+  <img src="scheme.png" alt="content" style="border: 1px solid black; width: 800px;">
 </p>
 
 Given that the best paths from both models may have different lengths, the SW algorithm aligns the two estimations by searching for the most similar regions between them. The final estimation is eventually obtained from these two aligned sequences by following these premises: 
@@ -58,13 +58,13 @@ The specific steps to follow are:
 ## Experiments
 
 We considered four controlled scenarios to thoroughly evaluate the multimodal transcription approach:
-1) **Scenario A**: OMR <sub>Symbol Error Rate</sub> ~ AMT <sub>Symbol Error Rate</sub> 
+1) **Scenario A: OMR <sub>Symbol Error Rate</sub> ~ AMT <sub>Symbol Error Rate</sub>**
 <br>OMR model is trained using only 2.5% of the original training partition, while AMT uses the complete original training partition.
-2) **Scenario B**: OMR <sub>Symbol Error Rate</sub> < AMT <sub>Symbol Error Rate</sub> 
+2) **Scenario B: OMR <sub>Symbol Error Rate</sub> < AMT <sub>Symbol Error Rate</sub>**
 <br>OMR model is trained using only 4% of the original training partition, while AMT uses the complete original training partition.
-3) **Scenario C**: OMR <sub>Symbol Error Rate</sub> ~ AMT <sub>Symbol Error Rate</sub>
+3) **Scenario C: OMR <sub>Symbol Error Rate</sub> ~ AMT <sub>Symbol Error Rate</sub>**
 <br>OMR model is trained using only 4% of the original training partition, while AMT uses the complete original training partition. Both models are evaluated on a subset of the original test partition, created based on the performance of the AMT model on such partition. This allows us to achieve lower error rates than those in Scenario 1.
-4) **Scenario D**: OMR <sub>Symbol Error Rate</sub> << AMT <sub>Symbol Error Rate</sub>
+4) **Scenario D: OMR <sub>Symbol Error Rate</sub> << AMT <sub>Symbol Error Rate</sub>**
 <br>Both OMR and AMT models are trained using the original training partition.
 
 
