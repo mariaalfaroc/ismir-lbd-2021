@@ -94,8 +94,8 @@ $ python main.py
   doi       = {10.1007/s13735-021-00221-6},
 }
 @inproceedings{delafuente2021multimodal,
-  author    = {de la Fuente, Carlos and Valero-Mas, Jose J. and Castellanos, Francisco J. and Calvo-Zaragoza, Jorge and Alfaro-Contreras, Mar{\'i}a and I{\~n}esta, Jose M. },
   title     = {{Multimodal audio and image music transcription}},
+  author    = {de la Fuente, Carlos and Valero-Mas, Jose J. and Castellanos, Francisco J. and Calvo-Zaragoza, Jorge and Alfaro-Contreras, Mar{\'i}a and I{\~n}esta, Jose M. },
   booktitle = {{Late-breaking Demo at the 22nd International Society for Music Information Retrieval (ISMIR) Conference}},
   year      = {2021},
   month     = nov,
