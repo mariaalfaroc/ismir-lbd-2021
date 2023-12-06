@@ -33,7 +33,7 @@ LABEL_EXTENSION = ".semantic"
 
 # Get all the folds filenames for each data partition
 # folds = {"train": [".../train_gt_fold0.dat", ".../train_gt_fold1.dat", ...], "val": [...], "test": [...]}
-def get_folds_filenames(scenario_name: str) -> list:
+def get_folds_filenames(scenario_name: str) -> Dict[str, List[str]]:
     scenario_dir = f"Scenario{scenario_name}"
 
     folds = {"train": [], "val": [], "test": []}
