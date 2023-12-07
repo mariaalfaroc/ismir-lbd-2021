@@ -138,10 +138,13 @@ def create_a_and_b_folds(p_size: float, scenario: str):
             exist = True
             for s in ["train", "val", "test"]:
                 for id in range(5):
-                    if not os.path.isfile(f"scenarios/Scenario{scenario}/{s}_gt_fold{id}.dat"):
+                    if not os.path.isfile(
+                        f"scenarios/Scenario{scenario}/{s}_gt_fold{id}.dat"
+                    ):
                         exist = False
                         break
         return exist
+
     # Check if the scenario already exists
     if not check_scenario_exists(scenario):
         # Obtain folds for ScenarioD
@@ -162,7 +165,6 @@ def create_a_and_b_folds(p_size: float, scenario: str):
     else:
         print(f"Scenario {scenario} already exists! Using existing folds.")
         pass
-        
 
 
 ##################################### SCENARIO C:
