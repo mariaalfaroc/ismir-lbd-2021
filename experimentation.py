@@ -5,11 +5,14 @@ from typing import List
 import pandas as pd
 from tensorflow import keras
 
-from my_utils.vocabulary import check_and_retrive_vocabulary
 from networks.models import build_models
 from networks.train import train_and_test_model
 from networks.test import evaluate_model
-from scenarios.folds_creation import get_folds_filenames, get_datafold_filenames
+from scenarios.folds_creation import (
+    get_folds_filenames,
+    get_datafold_filenames,
+    check_and_retrive_vocabulary,
+)
 from scenarios.config import MODEL_FROM
 from late_fusion.predict import evaluate_multimodal_transcription
 
