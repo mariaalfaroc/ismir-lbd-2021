@@ -36,7 +36,7 @@ def evaluate_model(
     y_pred_acc = []
     # Iterate over images
     for img, label in zip(images_files, labels_files):
-        images, images_len = preprocess_input(task=task, image_path=img)
+        images, images_len = preprocess_input(task=task, input_path=img)
         images = np.expand_dims(images, axis=0)
         # Obtain predictions
         y_pred = model(images, training=False)

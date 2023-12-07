@@ -75,7 +75,7 @@ def get_predictions_and_probabilities(
     y_pred_prob_acc = []
     # Iterate over images
     for img in images_files:
-        images, images_len = preprocess_input(task=task, image_path=img)
+        images, images_len = preprocess_input(task=task, input_path=img)
         images = np.expand_dims(images, axis=0)
         # Obtain predictions
         y_pred = model(images, training=False)
