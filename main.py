@@ -24,13 +24,16 @@ if __name__ == "__main__":
     ##################################### STAND-ALONE EVALUATION:
 
     EPOCHS = 150
-    BATCH_SIZE = 16
+    BATCH_SIZE = {"omr": 16, "amt": 4}
     SYMER_THRESHOLD = 30
 
     # 1) Evaluate first on Scenario D (original partitions)
     for task in ["omr", "amt"]:
         k_fold_experiment(
-            task=task, scenario_name="D", epochs=EPOCHS, batch_size=BATCH_SIZE
+            task=task,
+            scenario_name="D",
+            epochs=EPOCHS,
+            batch_size=BATCH_SIZE[task],
         )
     # 2) Create folds for the rest of the scenarios
     create_a_and_b_folds(p_size=2.5, scenario="A")
@@ -45,7 +48,10 @@ if __name__ == "__main__":
                 k_fold_experiment_scenario_c(task=task)
                 continue
             k_fold_experiment(
-                task=task, scenario_name=scenario, epochs=EPOCHS, batch_size=BATCH_SIZE
+                task=task,
+                scenario_name=scenario,
+                epochs=EPOCHS,
+                batch_size=BATCH_SIZE[task],
             )
 
     ##################################### MULTIMODAL EVALUATION:
