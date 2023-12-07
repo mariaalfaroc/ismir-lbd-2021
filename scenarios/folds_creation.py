@@ -12,7 +12,7 @@ from networks.test import evaluate_model
 
 INPUT_EXTENSION = {"omr": "_distorted.jpg", "amt": ".wav"}
 LABEL_EXTENSION = ".semantic"
-VOCABS_DIR = "vocabs/"
+VOCABS_DIR = "scenarios/vocabs/"
 os.makedirs(VOCABS_DIR, exist_ok=True)
 
 
@@ -37,7 +37,7 @@ os.makedirs(VOCABS_DIR, exist_ok=True)
 # Get all the folds filenames for each data partition
 # folds = {"train": [".../train_gt_fold0.dat", ".../train_gt_fold1.dat", ...], "val": [...], "test": [...]}
 def get_folds_filenames(scenario_name: str) -> Dict[str, List[str]]:
-    scenario_dir = f"Scenario{scenario_name}"
+    scenario_dir = f"scenarios/Scenario{scenario_name}"
 
     folds = {"train": [], "val": [], "test": []}
     for fname in os.listdir(scenario_dir):
@@ -132,21 +132,37 @@ def load_dictionaries(filepath: str) -> Tuple[Dict[str, int], Dict[int, str]]:
 # Utility function for creating 5-folds with train,
 # validation, and test partitions for Scenarios A and B
 def create_a_and_b_folds(p_size: float, scenario: str):
-    # Obtain folds for ScenarioD
-    folds = get_folds_filenames("D")
-    # Create Scenario{scenario} folder
-    os.makedirs(f"Scenario{scenario}", exist_ok=True)
-    # Copy val and test folds
-    for f in folds["val"] + folds["test"]:
-        shutil.copyfile(f, f.replace("ScenarioD", f"Scenario{scenario}"))
-    # Create new train folds
-    for f in folds["train"]:
-        with open(f, "r") as dat:
-            samples = dat.read().splitlines()
-        new_size = int(len(samples) * p_size / 100)
-        new_samples = random.sample(samples, k=new_size)
-        with open(f.replace("ScenarioD", f"Scenario{scenario}"), "w") as new_dat:
-            new_dat.write("\n".join(new_samples))
+    def check_scenario_exists(scenario: str):
+        exist = False
+        if os.path.isdir(f"scenarios/Scenario{scenario}"):
+            exist = True
+            for s in ["train", "val", "test"]:
+                for id in range(5):
+                    if not os.path.isfile(f"scenarios/Scenario{scenario}/{s}_gt_fold{id}.dat"):
+                        exist = False
+                        break
+        return exist
+    # Check if the scenario already exists
+    if not check_scenario_exists(scenario):
+        # Obtain folds for ScenarioD
+        folds = get_folds_filenames("D")
+        # Create Scenario{scenario} folder
+        os.makedirs(f"scenarios/Scenario{scenario}", exist_ok=True)
+        # Copy val and test folds
+        for f in folds["val"] + folds["test"]:
+            shutil.copyfile(f, f.replace("ScenarioD", f"Scenario{scenario}"))
+        # Create new train folds
+        for f in folds["train"]:
+            with open(f, "r") as dat:
+                samples = dat.read().splitlines()
+            new_size = int(len(samples) * p_size / 100)
+            new_samples = random.sample(samples, k=new_size)
+            with open(f.replace("ScenarioD", f"Scenario{scenario}"), "w") as new_dat:
+                new_dat.write("\n".join(new_samples))
+    else:
+        print(f"Scenario {scenario} already exists! Using existing folds.")
+        pass
+        
 
 
 ##################################### SCENARIO C:
@@ -158,13 +174,13 @@ def write_c_folds(test_samples: dict):
     # Obtain folds for ScenarioB
     folds = get_folds_filenames("B")
     # Create ScenarioC folder
-    os.makedirs("ScenarioC", exist_ok=True)
+    os.makedirs("scenarios/ScenarioC", exist_ok=True)
     # Copy train and val folds
     for f in folds["train"] + folds["val"]:
         shutil.copyfile(f, f.replace("ScenarioB", "ScenarioC"))
     # Create new test folds
     for id, samples in test_samples.items():
-        with open(f"ScenarioC/test_gt_fold{id}.dat", "w") as dat:
+        with open(f"scenarios/ScenarioC/test_gt_fold{id}.dat", "w") as dat:
             dat.write("\n".join(samples))
 
 
