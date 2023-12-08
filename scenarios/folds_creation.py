@@ -202,7 +202,12 @@ def filter_samples(
     # Iterate over images
     for img, label in zip(images_files, labels_files):
         symer, _ = evaluate_model(
-            task=task, model=model, images_files=[img], labels_files=[label], i2w=i2w
+            task=task,
+            model=model,
+            images_files=[img],
+            labels_files=[label],
+            i2w=i2w,
+            print_metrics=False,
         )
         # If the Symbol Error Rate is lower than or equal to the threshold,
         # the sample gets added to the new subset
