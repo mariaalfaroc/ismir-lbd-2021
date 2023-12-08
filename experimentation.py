@@ -219,7 +219,7 @@ def k_fold_multimodal_experiment(
 
         # Load the models
         omr_pred_model_filepath = os.path.join(
-            "results", f"scenario{MODEL_FROM['omr'][{scenario_name}]}"
+            "results", f"scenario{MODEL_FROM['omr'][scenario_name]}"
         )
         omr_pred_model_filepath = os.path.join(
             omr_pred_model_filepath, f"fold{id}", "best_omr_model.keras"
@@ -227,7 +227,7 @@ def k_fold_multimodal_experiment(
         omr_prediction_model = keras.models.load_model(omr_pred_model_filepath)
 
         amt_pred_model_filepath = os.path.join(
-            "results", f"scenario{MODEL_FROM['amt'][{scenario_name}]}"
+            "results", f"scenario{MODEL_FROM['amt'][scenario_name]}"
         )
         amt_pred_model_filepath = os.path.join(
             amt_pred_model_filepath, f"fold{id}", "best_amt_model.keras"

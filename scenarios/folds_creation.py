@@ -128,23 +128,24 @@ def load_dictionaries(filepath: str) -> Tuple[Dict[str, int], Dict[int, str]]:
 # Those are the new train partitions
 # Validation and test partitions are those of Sceneario D
 
+# Utility function for checking if a scenario already exists
+def check_scenario_exists(scenario: str):
+    exist = False
+    if os.path.isdir(f"scenarios/Scenario{scenario}"):
+        exist = True
+        for s in ["train", "val", "test"]:
+            for id in range(5):
+                if not os.path.isfile(
+                    f"scenarios/Scenario{scenario}/{s}_gt_fold{id}.dat"
+                ):
+                    exist = False
+                    break
+    return exist
+
 
 # Utility function for creating 5-folds with train,
 # validation, and test partitions for Scenarios A and B
 def create_a_and_b_folds(p_size: float, scenario: str):
-    def check_scenario_exists(scenario: str):
-        exist = False
-        if os.path.isdir(f"scenarios/Scenario{scenario}"):
-            exist = True
-            for s in ["train", "val", "test"]:
-                for id in range(5):
-                    if not os.path.isfile(
-                        f"scenarios/Scenario{scenario}/{s}_gt_fold{id}.dat"
-                    ):
-                        exist = False
-                        break
-        return exist
-
     # Check if the scenario already exists
     if not check_scenario_exists(scenario):
         # Obtain folds for ScenarioD
@@ -216,63 +217,70 @@ def filter_samples(
 # Utility function for obtaining model predictions and
 # creating a new subset based on the corresponding error prediction
 def create_c_folds(symer_threshold: int = 30):
-    keras.backend.clear_session()
-    gc.collect()
-
-    task = "amt"
-
-    # ---------- PRINT EXPERIMENT DETAILS
-
-    print("5-fold test performance experiment to create scenario C")
-    print(f"\tTask: {task}")
-    print(f"\tSym-ER threshold: {symer_threshold}")
-
-    # ---------- FOLDS COLLECTION
-
-    folds = get_folds_filenames("D")  # Original test partition
-
-    # ---------- 5-FOLD EVALUATION
-
-    new_set = {}
-    for id, test_fold in enumerate(folds["test"]):
-        # With 'clear_session()' called at the beginning,
-        # Keras starts with a blank state at each iteration
-        # and memory consumption is constant over time.
+    # Check if scenario exists
+    if not check_scenario_exists("C"):
+        
         keras.backend.clear_session()
         gc.collect()
 
-        print(f"Fold {id}")
+        task = "amt"
 
-        # Get the current fold data
-        test_images, test_labels = get_datafold_filenames(
-            task=task, fold_filename=test_fold
-        )
-        print(f"Test size: {len(test_images)}")
+        # ---------- PRINT EXPERIMENT DETAILS
 
-        # Check and retrieve vocabulary
-        _, i2w = check_and_retrive_vocabulary(fold_id=id)
+        print("5-fold test performance experiment to create scenario C")
+        print(f"\tTask: {task}")
+        print(f"\tSym-ER threshold: {symer_threshold}")
 
-        # Get prediction model
-        pred_model_filepath = f"results/scenarioD/fold{id}"
-        pred_model_filepath = os.path.join(
-            pred_model_filepath, f"best_{task}_model.keras"
-        )
-        assert os.path.exists(pred_model_filepath), "Model from scenario D not found!"
-        prediction_model = keras.models.load_model(pred_model_filepath)
+        # ---------- FOLDS COLLECTION
 
-        # Evaluate model and add to the new set the samples whose prediction error is lower than or equal to threshold
-        new_set[id] = filter_samples(
-            task,
-            prediction_model,
-            test_images,
-            test_labels,
-            i2w,
-            symer_threshold,
-        )
+        folds = get_folds_filenames("D")  # Original test partition
 
-        # Clear memory
-        del test_images, test_labels
-        del prediction_model
+        # ---------- 5-FOLD EVALUATION
 
-    # Create 5-folds using new set samples
-    write_c_folds(new_set)
+        new_set = {}
+        for id, test_fold in enumerate(folds["test"]):
+            # With 'clear_session()' called at the beginning,
+            # Keras starts with a blank state at each iteration
+            # and memory consumption is constant over time.
+            keras.backend.clear_session()
+            gc.collect()
+
+            print(f"Fold {id}")
+
+            # Get the current fold data
+            test_images, test_labels = get_datafold_filenames(
+                task=task, fold_filename=test_fold
+            )
+            print(f"Test size: {len(test_images)}")
+
+            # Check and retrieve vocabulary
+            _, i2w = check_and_retrive_vocabulary(fold_id=id)
+
+            # Get prediction model
+            pred_model_filepath = f"results/scenarioD/fold{id}"
+            pred_model_filepath = os.path.join(
+                pred_model_filepath, f"best_{task}_model.keras"
+            )
+            assert os.path.exists(pred_model_filepath), "Model from scenario D not found!"
+            prediction_model = keras.models.load_model(pred_model_filepath)
+
+            # Evaluate model and add to the new set the samples whose prediction error is lower than or equal to threshold
+            new_set[id] = filter_samples(
+                task=task,
+                model=prediction_model,
+                images_files=test_images,
+                labels_files=test_labels,
+                i2w=i2w,
+                symer_threshold=symer_threshold,
+            )
+
+            # Clear memory
+            del test_images, test_labels
+            del prediction_model
+
+        # Create 5-folds using new set samples
+        write_c_folds(new_set)
+
+    else:
+        print("Scenario C already exists! Using existing folds.")
+        pass

@@ -31,6 +31,7 @@ def evaluate_model(
     images_files: List[str],
     labels_files: List[str],
     i2w: Dict[int, str],
+    print_metrics: bool = True,
 ) -> Tuple[float, float]:
     y_true_acc = []
     y_pred_acc = []
@@ -49,7 +50,8 @@ def evaluate_model(
         y_pred_acc.append(y_pred[0])
     # Compute metrics
     symer, seqer = compute_metrics(y_true_acc, y_pred_acc)
-    print(
-        f"SymER (%): {symer:.2f}, SeqER (%): {seqer:.2f} - From {len(y_true_acc)} samples"
-    )
+    if print_metrics:
+        print(
+            f"SymER (%): {symer:.2f}, SeqER (%): {seqer:.2f} - From {len(y_true_acc)} samples"
+        )
     return symer, seqer
